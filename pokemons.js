@@ -1,20 +1,26 @@
 // API endpoint --------------------------------------------
 const baseUrl = 'https://pokeapi.co/api/v2/pokemon/';
 
+// * Main api handler
+function fetch_api(i) {
+  const api = `https://pokeapi.co/api/v2/pokemon/${i}/`;
+  const promise = fetch(api);
+  return promise.then((response) => {
+    return response.json();
+  });
+}
+
 // Get Elements --------------------------------------------
 const searchInput = getElement('.search-input'),
   searchButton = getElement('.search-button'),
   container = getElement('.pokemon'),
   erroMessage = getElement('.error');
 
-var
-  pokemon, // Responsavel por guardar os dados recebidos da API
-  card; // Responsavel por receber o HTML 
-let jogadorDeck;
-let computerDeck;
 const cards = [];
-const maoPlayer = [];
-const maoCpu = [];
+const maoJogador = [];
+const maoBot = [];
+const jogadorDeck = [];
+const botDeck = [];
 
 function Card(json) {
   this.img = json.sprites.other["official-artwork"].front_default;
@@ -30,77 +36,88 @@ function Card(json) {
 // Build Functions --------------------------------------------
 // Função que faz a chamada das principais funções e inicia o app
 function startApp() {
-  jogadorDeck = [];
-  computerDeck = [];
   //Cria os dois decks, máquina e jogador 
   randomDeck(jogadorDeck);
-  randomDeck(computerDeck);
+  randomDeck(botDeck);
   generatePokemonsHTML(jogadorDeck, true);
-  generatePokemonsHTML(computerDeck, false);
+  generatePokemonsHTML(botDeck, false);
+    for(let i=0; i < 5; i++){
+     maoJogador[i] = jogadorDeck[i];
+     maoBot[i] = botDeck[i];
+    }
+  console.log("Deck Jogador");
+  console.log(jogadorDeck);
+  console.log("Deck Bot");
+  console.log(botDeck);
+  console.log("Mao Jogador");
+  console.log(maoJogador);
+  console.log("Mao bot");
+  console.log(maoBot);
 }
 
+
+
 //Função para definir o turno dos jogadores
-function defineTurno(maoPlayer) {
-  if (maoPlayer) {
-    //attributeChange(maoCpu, maoPlayer.Card);
-    //checkAttribute(Card(maoPlayer), Card(cpu), atributo);
+function defineTurno(maoJogador) {
+  if (maoJogador) {
+    //attributeChange(maoBot, maoJogador.Card);
+    //checkAttribute(Card(maoJogador), Card(cpu), atributo);
   } else {
-    let cpu = attributeCompare(maoCpu);
+    let cpu = attributeCompare(maoBot);
   }
 }
 
 // Função que compara a o atributo da carta selecionada pelo jogador com as cartas da cpu
-function attributeChange(maoCpu, maoPlayer) {
-  let valueBestAttribute = maoCPU;
+function attributeChange(maoBot, maoJogador) {
+  let valueBestAttribute = maoBot;
 
   for (let i = 1; i <= 5; i++) {
-    let bestAttributePlayer = maoPlayer[i].Card;
-    if (maoCpu[i].Card > bestAttributePlayer) {
-      valueBestAttribute = maoCpu[i].Card;
+    let bestAttributePlayer = maoJogador[i].Card;
+    if (maoBot[i].Card > bestAttributePlayer) {
+      valueBestAttribute = maoBot[i].Card;
     }
   }
   return valueBestAttribute;
 }
 
 //Função pra checar os atributos com valores mais altos 
-function attributeCompare(maoCPU) {
+function attributeCompare(maoBot) {
   for (let i = 1; i <= 5; i++) {
     let bestAttributeBot = "attack";
-    let valueBestAttribute = maoCPU[i].attack;
+    let valueBestAttribute = maoBot[i].attack;
 
-    if (maoCPU[i].defense > valueBestAttribute) {
+    if (maoBot[i].defense > valueBestAttribute) {
       bestAttributeBot = "defense";
-      valueBestAttribute = maoCPU[i].defense;
+      valueBestAttribute = maoBot[i].defense;
     }
-    if (maoCPU[[i]["special-attack"]] > valueBestAttribute) {
+    if (maoBot[[i]["special-attack"]] > valueBestAttribute) {
       bestAttributeBot = "special-attack";
     }
-    if (maoCPU[[i]["special-defense"]] > valueBestAttribute) {
+    if (maoBot[[i]["special-defense"]] > valueBestAttribute) {
       bestAttributeBot = "special-defense";
     }
-    if (maoCPU[i].speed > valueBestAttribute) {
+    if (maoBot[i].speed > valueBestAttribute) {
       bestAttributeBot = "speed";
     }
-    if (maoCPU[i].hp > valueBestAttribute) {
+    if (maoBot[i].hp > valueBestAttribute) {
       bestAttributeBot = "hp";
     }
   }
   return bestAttributeBot;
 }
 
-
 // Função que conta as cartas e define a maior, coloca e retira dos montes e conta os pontos
 function pushPopDecks(playerCard, computerCard, attribute) {
   attributeCompare(attribute);
   if (playerCard[attribute] > computerCard[attribute]) {
     jogadorDeck.push(jogadorDeck.shift());
-    jogadorDeck.push(computerDeck.shift());
+    jogadorDeck.push(botDeck.shift());
   } else if (playerCard[attribute] == computerCard[attribute]) {
     jogadorDeck.push(jogadorDeck.shift());
-    computerDeck.push(computerDeck.shift());
+    botDeck.push(botDeck.shift());
   } else {
-    computerDeck.push(computerDeck.shift());
-    computerDeck.push(jogadorDeck.shift());
+    botDeck.push(botDeck.shift());
+    botDeck.push(jogadorDeck.shift());
   }
   endRound();
 }
@@ -139,14 +156,6 @@ function getElement(element) {
   return document.querySelector(element);
 }
 
-// * Main api handler
-function fetch_api(i) {
-  const api = `https://pokeapi.co/api/v2/pokemon/${i}/`;
-  const promise = fetch(api);
-  return promise.then((response) => {
-    return response.json();
-  });
-}
 
 function printCard(data) {
   //Cria a div que adiciona os elementos
@@ -196,7 +205,7 @@ async function generatePokemonsHTML(deck, print) {
     const data = pokemon_card;
     const cardObj = new Card(data);
     cards[deck[i]] = cardObj;
-    maoPlayer[i] = deck[i];
+    maoJogador[i] = deck[i];
     if (print) {
       printCard(data);
     }
@@ -207,8 +216,8 @@ async function generatePokemonsHTML(deck, print) {
 searchButton.addEventListener('click', event => {
   event.preventDefault();
   pokeIndice = searchInput.value;
-  defineTurno(cards[maoPlayer[pokeIndice]]);
-  attributeCompare(cards[maoCPU]);
+  defineTurno(cards[maoJogador[pokeIndice]]);
+  attributeCompare(cards[maoBot]);
 });
 
 startApp();
