@@ -41,46 +41,27 @@ function startApp() {
   randomDeck(botDeck);
   generatePokemonsHTML(jogadorDeck, true);
   generatePokemonsHTML(botDeck, false);
-    for(let i=0; i < 5; i++){
-     maoJogador[i] = jogadorDeck[i];
-     maoBot[i] = botDeck[i];
-    }
-  console.log("Deck Jogador");
-  console.log(jogadorDeck);
-  console.log("Deck Bot");
-  console.log(botDeck);
-  console.log("Mao Jogador");
-  console.log(maoJogador);
-  console.log("Mao bot");
-  console.log(maoBot);
+  for (let i = 0; i < 5; i++) {
+    maoJogador[i] = jogadorDeck[i];
+    maoBot[i] = botDeck[i];
+  }
 }
-
-
 
 //Função para definir o turno dos jogadores
-function defineTurno(maoJogador) {
-  if (maoJogador) {
-    //attributeChange(maoBot, maoJogador.Card);
-    //checkAttribute(Card(maoJogador), Card(cpu), atributo);
-  } else {
-    let cpu = attributeCompare(maoBot);
-  }
-}
 
 // Função que compara a o atributo da carta selecionada pelo jogador com as cartas da cpu
-function attributeChange(maoBot, maoJogador) {
-  let valueBestAttribute = maoBot;
-
+function checkCardsBot(maoBot, cardJogador, attr) {
+  let valueBestAttribute = cardJogador[attr];
+  let index = 1;
   for (let i = 1; i <= 5; i++) {
-    let bestAttributePlayer = maoJogador[i].Card;
-    if (maoBot[i].Card > bestAttributePlayer) {
-      valueBestAttribute = maoBot[i].Card;
+    if (cards[maoBot[i]][attr] > valueBestAttribute) {
+      index = i;
     }
   }
-  return valueBestAttribute;
+  return index;
 }
 
-//Função pra checar os atributos com valores mais altos 
+//Função pra checar os atributos com valores mais altos (Não usada) 
 function attributeCompare(maoBot) {
   for (let i = 1; i <= 5; i++) {
     let bestAttributeBot = "attack";
@@ -106,32 +87,61 @@ function attributeCompare(maoBot) {
   return bestAttributeBot;
 }
 
-// Função que conta as cartas e define a maior, coloca e retira dos montes e conta os pontos
-function pushPopDecks(playerCard, computerCard, attribute) {
-  attributeCompare(attribute);
-  if (playerCard[attribute] > computerCard[attribute]) {
-    jogadorDeck.push(jogadorDeck.shift());
-    jogadorDeck.push(botDeck.shift());
-  } else if (playerCard[attribute] == computerCard[attribute]) {
-    jogadorDeck.push(jogadorDeck.shift());
-    botDeck.push(botDeck.shift());
-  } else {
-    botDeck.push(botDeck.shift());
-    botDeck.push(jogadorDeck.shift());
+//Função pra checar os atributos com valores mais altos 
+function getBest(card) {
+
+  let bestAttributeBot = "attack";
+  let valueBestAttribute = card.attack;
+
+  if (card.defense > valueBestAttribute) {
+    bestAttributeBot = "defense";
   }
-  endRound();
+  if (card["special-attack"] > valueBestAttribute) {
+    bestAttributeBot = "special-attack";
+  }
+  if (card["special-defense"] > valueBestAttribute) {
+    bestAttributeBot = "special-defense";
+  }
+  if (card.speed > valueBestAttribute) {
+    bestAttributeBot = "speed";
+  }
+  if (card.hp > valueBestAttribute) {
+    bestAttributeBot = "hp";
+  }
+  return bestAttributeBot;
+}
+
+// Função coloca e retira dos montes e conta os pontos
+function pushPopDecks(cardPlayer, cardBot) {
+  if (cardPlayer > cardBot) {
+    jogadorDeck.push(cardBot);
+    jogadorDeck.push(botDeck.shift());
+  } if (cardPlayer < cardBot) {
+    botDeck.push(cardPlayer);
+    botDeck.push(jogadorDeck.shift());
+  } if (cardPlayer == cardBot) {
+    jogadorDeck.push(jogadorDeck.shift());
+    botDeck.push(botDeck.shift());
+  }
+  console.log("Qtd jogador deck");
+  console.log(jogadorDeck.length);
+  console.log("Qtd bot deck");
+  console.log(botDeck.length);
+  endRound(botDeck.length, jogadorDeck.length);
 }
 
 // Função que termina o round 
-function endRound() {
-
-  //adicionar um if aqui 
-  endGame();
+function endRound(qtdCardPlayer, qtdCardBot) {
+  if (qtdCardPlayer <= 0 || qtdCardBot <= 0) {
+    endGame(qtdCardPlayer, qtdCardBot);
+  } else {
+    generatePokemonsHTML(maoJogador);
+  }
 }
 
 //Função que encerra o jogo 
-function endGame() {
-  if (playerDeck.length) {
+function endGame(qtdCardPlayer, qtdCardBot) {
+  if (qtdCardPlayer > qtdCardBot) {
     alert("VOCÊ VENCEU!");
   } else {
     alert("VOCÊ PERDEU!");
@@ -205,19 +215,40 @@ async function generatePokemonsHTML(deck, print) {
     const data = pokemon_card;
     const cardObj = new Card(data);
     cards[deck[i]] = cardObj;
-    maoJogador[i] = deck[i];
+    if (deck == jogadorDeck) {
+      maoJogador[i] = deck[i];
+    } else {
+      maoBot[i] = deck[i];
+    }
     if (print) {
       printCard(data);
     }
   }
 }
 
+function battle(cardPlayer, cardBot, attr) {
+  let card1 = cardPlayer[attr];
+  let card2 = cardBot[attr];
+  if (cardPlayer[attr] >= cardBot[attr]) {
+    console.log("Player ganhou");
+  } else {
+    console.log("Bot ganhou");
+  }
+  pushPopDecks(card1, card2);
+}
+
 // Add Events --------------------------------------------
 searchButton.addEventListener('click', event => {
   event.preventDefault();
   pokeIndice = searchInput.value;
-  defineTurno(cards[maoJogador[pokeIndice]]);
-  attributeCompare(cards[maoBot]);
+  const attr = getBest(cards[maoJogador[pokeIndice]]);
+  const card = cards[maoJogador[pokeIndice]];
+  const indexBot = checkCardsBot(maoBot, card, attr);
+  const cardBot = cards[maoBot[indexBot]];
+  console.log(card);
+  console.log(cardBot);
+  console.log(attr, card[attr], cardBot[attr]);
+  battle(card, cardBot, attr);
 });
 
 startApp();

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="pokemons.css">
   <title>PokeAPI Game</title>
 </head>
+
 <body>
   <main class="container">
     <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg" alt="Pokemon Logo">
@@ -14,13 +16,17 @@
     <form action="" class="search">
       <input type="search" class="search-input" placeholder="Select a card number">
       <button class="search-button">Choose</button>
+      <p id=placar>Jogador <input type="button" name="placarJogador" id="placarJogador" value="0">
+        <input type="button" name="placarBot" id="placarBot" value="0"> Bot
+      </p>
     </form>
     <section class="main">
       <section class="pokemon">
       </section>
-  </section>
+    </section>
     <span class="error">Not Found!</span>
   </main>
   <script src="pokemons.js"></script>
 </body>
+
 </html>
